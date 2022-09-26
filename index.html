@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Sockets</title>
+  </head>
+
+  <body>
+    <h1>Web Sockets</h1>
+    <form>
+     <h2>Nombre</h2>
+     <input class="nombre" type="text"></input>
+     <h2>Peso</h2>
+     <input class="peso" type="text">kg</input>
+     <h2>Altura</h2>
+     <input class="altura" type="text">cm</input>
+     <h2>IMC</h2>
+     <h3 class="imc">0</h3>
+     <br>
+     <h3 class="respuesta">...</h3>
+     <br>
+     <button class="btnEnviar" type="button">Enviar</button>
+    </form>
+    <script>
+     const btnEnviar= document.querySelector('.btnEnviar');
+     const nombre= document.querySelector('.nombre');
+     const altura= document.querySelector('.altura');
+     const peso= document.querySelector('.peso');
+     const imc= document.querySelector('.imc');
+     const resp= document.querySelector('.respuesta');
+
+
+     
+     const ws = new WebSocket('ws://localhost:8082');
+
+     btnEnviar.addEventListener('click',presionarEnviar);
+
+      ws.addEventListener('open', ()=> {
+        console.log('We are connected!');
+      });
+
+      ws.addEventListener('message', (res) => {
+        const mensaje = res.data;
+        console.log(mensaje);
+        let count = 0;
+        let ic = 0;
+        let persona = {
+          nombre: '',
+          altura: 0,
+          peso: 0,
+          imc: 0,
+        };
+
+        for (let i = 0; i < mensaje.length; i++) {
+          if (mensaje.charAt(i) === ' ') {
+            count++;
+            let valor = mensaje.substring(ic, i);
+            ic = i + 1;
+            switch (count) {
+              case 1:
+                persona.nombre = valor;
+                break;
+              case 2:
+                persona.altura = parseInt(valor);
+                break;
+              case 3:
+                persona.peso = parseInt(valor);
+                persona.imc=mensaje.substring(ic,mensaje.length)
+                break;
+              default:
+                break;
+            }
+          }
+        }
+
+        persona.imc=(Math.round(persona.imc * 100) / 100).toFixed(2);
+        imc.textContent=persona.imc
+        if(persona.imc< 18.5){
+          resp.textContent='Resumen: Delgado'
+        }else if(persona.imc> 18.6 && persona.imc< 24.9){
+          resp.textContent='Resumen: Saludable'
+        }else if(persona.imc> 25 && persona.imc< 29.9){
+          resp.textContent='Resumen: Sobrepeso'
+        }else{
+          resp.textContent='Resumen: Obeso'
+        }
+      });
+
+      function presionarEnviar(){
+            const persona={
+             nombre:nombre.value,
+             altura:altura.value,
+             peso:peso.value,
+             imc:0
+            } 
+            const tabulado=(Object.values(persona).join(' '));
+            ws.send(tabulado);
+           }
+      
+      
+
+    </script>
+  </body>
+</html>
