@@ -1,0 +1,5 @@
+Para iniciar el servidor en consola ejecute el comando "node index.js"
+
+Después abra localmente el archivo "index.html"
+
+Posteriormente llene los espacios y presiones el botón
